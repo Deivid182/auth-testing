@@ -44,10 +44,10 @@
   etc).
 [x] The password input should contain at least: 8 characters, one upper case
   letter, one number and one special character.
-- The form must send the data to a backend endpoint service.
-- The submit button should be disabbled while the form page is fetching the
+[x] The form must send the data to a backend endpoint service.
+[x] The submit button should be disabbled while the form page is fetching the
   data. After fetching, the submit button does not have to be disabled.
-- There should be a loading indicator at the top of the form while it is
+[x] There should be a loading indicator at the top of the form while it is
   fetching.
 - In a unexpected server error, the form page must display the error message
   “Unexpected error, please try again” from the api.

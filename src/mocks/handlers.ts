@@ -9,7 +9,7 @@ export const handlers = [
     return HttpResponse.json({
       message: "Login successful"
     }, {
-      status: 401
+      status: 200
     })
   })
 ]

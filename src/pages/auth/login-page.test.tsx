@@ -1,15 +1,26 @@
-import { screen, render, cleanup } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import user from "@testing-library/user-event"
 import LoginPage from './login-page'
+import { customRender } from '../../mocks/custom-render'
 
 beforeEach(() => {
-  render(<LoginPage />)
+  customRender(<LoginPage />)
 })
 
+const fillFieldsAndSubmit = async (email: string, password: string) => {
+  const emailInput = screen.getByPlaceholderText(/email/i)
+  const passwordInput = screen.getByLabelText(/password/i)
+  const loginButton = screen.getByRole("button", { name: /login/i })
+
+  await user.type(emailInput, email)
+  await user.type(passwordInput, password)
+  await user.click(loginButton)
+}
+
+const getSubmitButton = () => screen.getByRole("button", { name: /login/i })
+
 describe("Login Page", () => {
-  afterEach(() => {
-    cleanup()
-  })
+  
   it("should display a title on the login page", () => {
     const title = screen.getByText(/Login Page/i)
     expect(title).toBeInTheDocument()
@@ -26,9 +37,7 @@ describe("Login Page", () => {
 })
 
 describe("Login form validations", () => {
-  afterEach(() => {
-    cleanup()
-  })
+  
   it("should display required messages as the next format: The [field name] field is required", async () => {
     await user.click(screen.getByRole("button", { name: /login/i }))
     const emailAlert = await screen.findByText(/The email field is required/i)
@@ -37,36 +46,13 @@ describe("Login form validations", () => {
     expect(emailAlert).toBeInTheDocument()
     expect(passwordAlert).toBeInTheDocument()
   })
-
-  it("should not display any alert if the email and password are valid", async () => {
-    const emailInput = screen.getByPlaceholderText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
-    const loginButton = screen.getByRole("button", { name: /login/i })
-
-    await user.type(emailInput, "dave@gmail.com")
-    await user.type(passwordInput, "123456")
-    await user.click(loginButton)
-
-    const emailAlert = screen.queryByText(/The email field is required/i)
-    const passwordAlert = screen.queryByText(/The password field is required/i)
-
-    expect(emailAlert).not.toBeInTheDocument()
-    expect(passwordAlert).not.toBeInTheDocument()
-  })
-
   
   it("should display an alert if the email and password are invalid", async () => {
 
     expect(screen.queryByText(/The email format is not valid/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/The password must be at least 6 characters/i)).not.toBeInTheDocument()
 
-    const emailInput = screen.getByPlaceholderText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
-    const loginButton = screen.getByRole("button", { name: /login/i })
-
-    await user.type(emailInput, "dave@gmail")
-    await user.type(passwordInput, "12345")
-    await user.click(loginButton)
+    await fillFieldsAndSubmit("dave", "123456")
 
     const emailAlert = await screen.findByText(/The email format is not valid/i)
     const passwordAlert = await screen.findByText(/The password must contain at least 8 characters, one upper case letter, one number and one special character/i)
@@ -76,18 +62,41 @@ describe("Login form validations", () => {
   })
 
   it("should not display any alert if the email and password are valid", async () => {
-    const emailInput = screen.getByPlaceholderText(/email/i)
-    const passwordInput = screen.getByLabelText(/password/i)
-    const loginButton = screen.getByRole("button", { name: /login/i })
 
-    await user.type(emailInput, "dave@gmail.com")
-    await user.type(passwordInput, "Davejs$21")
-    await user.click(loginButton)
+    await fillFieldsAndSubmit("dave@gmail.com", "Davejs$21")
 
     const emailAlert = screen.queryByText(/The email format is not valid/i)
     const passwordAlert = screen.queryByText(/The password must contain at least 8 characters, one upper case letter, one number and one special character/i)
 
     expect(emailAlert).not.toBeInTheDocument()
     expect(passwordAlert).not.toBeInTheDocument()
+  })
+})
+
+describe("Login form submit", () => {
+
+  it("should keep the submit button disabled while the fetching is in progress", async() => {
+    
+    await fillFieldsAndSubmit("dave@gmail.com", "Davejs$21")
+
+    await waitFor(() => expect(getSubmitButton()).toBeDisabled())
+
+    await waitFor(() => expect(getSubmitButton()).not.toBeDisabled(), { timeout: 2000 })
+  })
+
+  it("should display a toast when the form is submitted", async () => {
+
+    await fillFieldsAndSubmit("dave@gmail.com", "Davejs$21")
+    const toast = await screen.findByText(/Login successful/i)
+
+    expect(toast).toBeInTheDocument()
+  })
+
+  it("should display a loader when the form is submitted", async () => {
+
+    await fillFieldsAndSubmit("dave@gmail.com", "Davejs$21")
+    const loader = await screen.findByRole("status")
+
+    expect(loader).toBeInTheDocument()
   })
 })

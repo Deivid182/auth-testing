@@ -1,7 +1,10 @@
-import { Button, Checkbox, Label, TextInput, Alert } from "flowbite-react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { Button, Checkbox, Label, TextInput, Alert, Spinner } from "flowbite-react";
 import { loginSchema } from "./login-schema";
+import { useApp } from "../../hooks/use-app";
+import { login } from "./services";
 
 export type Inputs = {
   email: string;
@@ -16,14 +19,30 @@ const LoginPage = () => {
   } = useForm<Inputs>({
     resolver: zodResolver(loginSchema),
   });
+  const { showToast } = useApp()
+  const { status, mutate } = useMutation({
+    mutationFn: login,
+    onSuccess: (data) => {
+      showToast({
+        message: data.message,
+        type: "success",
+      })
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  })
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    console.log(data);
+    mutate(data)
   };
 
   return (
-    <>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex max-w-xl w-full rounded-lg shadow-md p-4 flex-col gap-4">
+    <div>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex w-full rounded-lg shadow-md p-4 flex-col gap-4">
+        {
+          status === "pending" ? <Spinner role="status"/> : null
+        }
         <h1 className="text-3xl font-semibold text-center">Login Page</h1>
         <div className="flex flex-col gap-2">
           <div className="mb-2 block">
@@ -66,9 +85,9 @@ const LoginPage = () => {
           <Checkbox id="remember" />
           <Label htmlFor="remember">Remember me</Label>
         </div>
-        <Button type="submit">Login</Button>
+        <Button className="disabled:opacity-50" disabled={status === "pending"} type="submit">Login</Button>
       </form>
-    </>
+    </div>
   );
 };
 

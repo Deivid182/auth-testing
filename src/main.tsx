@@ -1,7 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { AppProvider } from './providers/app-provider.tsx'
 import App from './App.tsx'
 import './index.css'
+
+const queryClient = new QueryClient()
 async function enableMocking() {
   if (process.env.NODE_ENV !== 'development') {
     return
@@ -17,7 +21,11 @@ async function enableMocking() {
 enableMocking().then(() => {
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <App />
+      <QueryClientProvider client={queryClient}>
+        <AppProvider>
+          <App />
+        </AppProvider>
+      </QueryClientProvider>
     </React.StrictMode>,
   )
 })
