@@ -2,10 +2,22 @@ import { screen, waitFor } from '@testing-library/react'
 import user from "@testing-library/user-event"
 import LoginPage from './login-page'
 import { customRender } from '../../mocks/custom-render'
+import { server } from '../../mocks/node'
+import { HttpResponse, http } from 'msw'
 
 beforeEach(() => {
   customRender(<LoginPage />)
 })
+
+const mockServerError = async (message: string, status: number) => {
+  server.use(
+    http.post("/login", () => {
+      return HttpResponse.json({
+        message,
+      }, { status })
+    })
+  )
+}
 
 const fillFieldsAndSubmit = async (email: string, password: string) => {
   const emailInput = screen.getByPlaceholderText(/email/i)
@@ -100,3 +112,25 @@ describe("Login form submit", () => {
     expect(loader).toBeInTheDocument()
   })
 })
+
+describe("when the user submits the form data and the server throws an unexpected error" ,() => {
+  it("should display the error message: Unexpected error, please try again", async () => {
+    await mockServerError("Unexpected error, please try again", 500)
+
+    await fillFieldsAndSubmit("dave@gmail.com", "Davejs$21")
+    
+    await waitFor(() => expect(screen.getByText(/Unexpected error, please try again/i)).toBeVisible(), { timeout: 1100 })
+  })
+})
+
+describe("when the user submits the form data and the server returns an invalid credentials error" ,() => {
+  it("should display the error message: The email or password are not correct", async () => {
+
+    await mockServerError("Invalid credentials", 401)
+
+    await fillFieldsAndSubmit("dave@gmail.com", "Davejs$21")
+    
+    await waitFor(() => expect(screen.getByText(/Invalid credentials/i)).toBeVisible(), { timeout: 1100 })
+  })
+})
+

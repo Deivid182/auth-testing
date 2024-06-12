@@ -1,3 +1,4 @@
+import { FetchError } from "../../../utils"
 type Credentials = {
   email: string
   password: string
@@ -13,7 +14,7 @@ export const login = async (credentials: Credentials) => {
   })
     .then(async (res) => {
       if (!res.ok) {
-        throw new Error(res.statusText)
+        throw new FetchError(res)
       }
       return await res.json()
     })

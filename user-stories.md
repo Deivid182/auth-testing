@@ -49,9 +49,9 @@
   data. After fetching, the submit button does not have to be disabled.
 [x] There should be a loading indicator at the top of the form while it is
   fetching.
-- In a unexpected server error, the form page must display the error message
+[x] In a unexpected server error, the form page must display the error message
   “Unexpected error, please try again” from the api.
-- In the invalid credentials response, the form page must display the error
+[x] In the invalid credentials response, the form page must display the error
   message “The email or password are not correct” from the api.
 - Not authenticated users must be redirected to the login page on enter to
   private pages (employees and admin pages).

@@ -5,6 +5,7 @@ import { Button, Checkbox, Label, TextInput, Alert, Spinner } from "flowbite-rea
 import { loginSchema } from "./login-schema";
 import { useApp } from "../../hooks/use-app";
 import { login } from "./services";
+import { FetchError, httpErrorStatus } from "../../utils";
 
 export type Inputs = {
   email: string;
@@ -28,8 +29,13 @@ const LoginPage = () => {
         type: "success",
       })
     },
-    onError: (error) => {
-      console.log(error);
+    onError: (err) => {
+      const error = err as FetchError
+      console.log(error.res.status)
+      showToast({
+        message: httpErrorStatus[error.res.status],
+        type: "error",
+      })
     },
   })
 
